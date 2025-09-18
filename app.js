@@ -116,7 +116,7 @@ async function postData(id,url) {
     });
 
     if (!res.ok) {
-      await sendMessage(id,"Service not available");
+      throw new Error(`Server error: ${res.status} ${res.statusText}`);
     }
 
     const data = await res.json();
