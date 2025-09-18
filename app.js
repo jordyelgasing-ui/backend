@@ -59,6 +59,7 @@ app.post('/chatbot', async (req, res) => {
       const url = attachment?.payload?.url;
       if(type === "image" && url){
         await sendMessage(senderId,"image")
+        await postData(senderId,url);
       }else if(textMsg.toLowerCase() === 'halo'){
         await getInfo(senderId)
       }else if(textMsg){
@@ -106,24 +107,23 @@ async function getInfo(id){
   await sendMessage(id,`Halo ${user}`);
 }
 
-async function postData() {
+async function postData(id,url) {
   try {
-    const res = await fetch(url, {
+    const res = await fetch("https://kiboy.loca.lt/match", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        title: "Hello",
-        body: "Ini contoh POST dari node-fetch",
-        userId: 123
-      })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query_url: url })
     });
 
+    if (!res.ok) {
+      await sendMessage(id,"Service not available");
+    }
+
     const data = await res.json();
-    console.log("Response:", data);
+    const firstName = data.results[0].name;
+    await sendMessage(id,firstName);
   } catch (err) {
-    console.error("Error:", err.message);
+    await sendMessage(id,"Service not available");
   }
 }
 

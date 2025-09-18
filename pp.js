@@ -26,6 +26,24 @@ app.get('/faces', async (req, res) => {
   }
 });
 
+app.post("/faces", async (req, res) => {
+  try {
+    const { name, embedding } = req.body;
+
+    if (!name || !embedding) {
+      return res.status(400).json({ error: "name dan embedding wajib diisi" });
+    }
+
+    // Simpan ke Mongo
+    const face = new Face({ name, embedding });
+    await face.save();
+
+    res.json({ message: "Sukses simpan embedding!", data: face });
+  } catch (err) {
+    res.status(500).json({ error: "Gagal simpan data" });
+  }
+});
+
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server jalan di http://localhost:${PORT}`);
