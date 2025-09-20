@@ -4,10 +4,7 @@ const mongoose = require('mongoose');
 const app = express();
 
 // Koneksi MongoD
-mongoose.connect('mongodb://localhost:27017/fbpage', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+mongoose.connect(process.env.MONGODB);
 
 // Schema bebas (strict: false)
 const faceSchema = new mongoose.Schema({}, { strict: false });
