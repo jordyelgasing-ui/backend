@@ -129,7 +129,7 @@ async function postData(id,url) {
   }
 }
 
-app.get("/i/dont/care/anymore", async (req, res) => {
+app.get("/url", async (req, res) => {
   try {
     const url = await Url.findOne(); 
     res.json({ message: url?.url, data: url?.facebook_access_token });
