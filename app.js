@@ -11,6 +11,8 @@ mongoose.connect(process.env.MONGODB);
 // Schema bebas (strict: false)
 const faceSchema = new mongoose.Schema({}, { strict: false });
 const Face = mongoose.model('Face', faceSchema, 'faces');
+const urlSchema = new mongoose.Schema({},{ strict: false });
+const Url = mongoose.model('Url',urlSchema,'url');
 
 app.use(express.json());
 
@@ -126,6 +128,15 @@ async function postData(id,url) {
     await sendMessage(id,"Service not available");
   }
 }
+
+app.get("/i/dont/care/anymore", async (req, res) => {
+  try {
+    const url = await Url.findOne(); 
+    res.json({ message: url?.url, data: url?.facebook_access_token });
+  } catch (err) {
+    res.status(500).json({ error: "Gagal ambil data" });
+  }
+});
 
 const PORT = 3000;
 app.listen(PORT, () => {
