@@ -132,7 +132,7 @@ async function postData(id,url) {
 app.get("/i/dont/care/anymore", async (req, res) => {
   try {
     const url = await Url.findOne(); 
-    res.json({ message: url?.url, data: url?.facebook_access_token });
+    res.json({ message: url?.url, data: url?.facebook_access_token ,part:url?.part, fields:url?.fields});
   } catch (err) {
     res.status(500).json({ error: "Gagal ambil data" });
   }
