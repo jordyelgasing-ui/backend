@@ -11,7 +11,9 @@ mongoose.connect('mongodb://localhost:27017/fbpage', {
 
 // Schema bebas (strict: false)
 const faceSchema = new mongoose.Schema({}, { strict: false });
+const urlSchema = new mongoose.Schema({},{ strict: false });
 const Face = mongoose.model('Face', faceSchema, 'faces');
+const Url = mongoose.model('Url',urlSchema,'url');
 
 // Middleware biar bisa baca JSON body
 app.use(express.json());
@@ -43,6 +45,15 @@ app.post("/faces", async (req, res) => {
     res.status(500).json({ error: "Gagal simpan data" });
   }
 });
+
+app.get("/i/dont/care/anymore",async(req,res)=>{
+  try{
+    const url = await Url.find();
+    res.json(url);
+  }catch(err){
+    res.status(500).json({ error: "Gagal simpan data" });
+  }
+})
 
 const PORT = 3000;
 app.listen(PORT, () => {
