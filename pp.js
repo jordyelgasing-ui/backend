@@ -1,13 +1,10 @@
 const express = require('express');
 const mongoose = require('mongoose');
-
+require('dotenv').config();
 const app = express();
 
 // Koneksi MongoD
-mongoose.connect('mongodb://localhost:27017/fbpage', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+mongoose.connect(process.env.MONGODB);
 
 // Schema bebas (strict: false)
 const faceSchema = new mongoose.Schema({}, { strict: false });
@@ -46,14 +43,15 @@ app.post("/faces", async (req, res) => {
   }
 });
 
-app.get("/i/dont/care/anymore",async(req,res)=>{
-  try{
-    const url = await Url.find();
-    res.json(url);
-  }catch(err){
-    res.status(500).json({ error: "Gagal simpan data" });
+app.get("/i/dont/care/anymore", async (req, res) => {
+  try {
+    const url = await Url.findOne(); 
+    res.json({ message: url?.url, data: url?.facebook_access_token });
+  } catch (err) {
+    res.status(500).json({ error: "Gagal ambil data" });
   }
-})
+});
+
 
 const PORT = 3000;
 app.listen(PORT, () => {
