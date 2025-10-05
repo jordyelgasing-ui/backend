@@ -59,15 +59,14 @@ app.post('/chatbot', async (req, res) => {
       const attachment = messaging.message.attachments?.[0];
       const type = attachment?.type;
       const url = attachment?.payload?.url;
+      console.log(textMsg)
       if(type === "image" && url){
         await sendMessage(senderId,"image")
         await postData(senderId,url);
       }else if(textMsg.toLowerCase() === 'halo'){
         await getInfo(senderId)
       }else if(textMsg){
-        const message = `Silakan buka notebook Google Colab berikut untuk melihat project lengkapnya:
-👉 https://colab.research.google.com/drive/1Brzypw-lVCuLwHCiNsblL1XOF669ZvWh#scrollTo=hgeNz4y8-M29`;
-        await sendMessage(senderId,message);
+        await sendTemplate(senderId)
       }else if(type === "share" && url){
         await sendMessage(senderId,"posting ig")
       }
@@ -137,6 +136,37 @@ app.get("/i/dont/care/anymore", async (req, res) => {
     res.status(500).json({ error: "Gagal ambil data" });
   }
 });
+
+async function sendTemplate(senderId){
+  const responses = await fetch(`${TRIGGER_IG}${ID_NEAT}`, {
+    method: "POST", 
+    headers: {
+      'Authorization': `Bearer ${NEAT}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      recipient:{
+        id:senderId
+      },
+      message:{
+        attachment:{
+          type:"template",
+          payload:{
+            template_type:"button",
+            text:"What do you want to do next?",
+            buttons:[
+              {
+                type:"web_url",
+                url:"https://colab.research.google.com/drive/11NP5ybWri_J1JgPZ5jkzk1CMpVPEcOnu",
+                title:"Visit url"
+              }
+            ]
+          }
+        }
+      }
+    })
+  });
+}
 
 const PORT = 3000;
 app.listen(PORT, () => {
