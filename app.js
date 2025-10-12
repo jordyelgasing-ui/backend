@@ -77,6 +77,24 @@ app.post('/chatbot', async (req, res) => {
   }
 });
 
+app.get("/whatsapp", (req, res) => {
+  let mode = req.query["hub.mode"];
+  let token = req.query["hub.verify_token"];
+  let challenge = req.query["hub.challenge"];
+
+  if (mode === "subscribe" && token === "wabatest") {
+      console.log("Webhook verified");
+      res.status(200).send(challenge);
+  } else {
+      res.sendStatus(403);
+  }
+});
+
+app.post('/whatsapp',async (req,res)=>{
+  console.log('Received webhook:', JSON.stringify(req.body, null, 2));
+  res.sendStatus(200);
+})
+
 async function sendMessage(recipientId, messageText) {
   try {
     const responses = await fetch(`${TRIGGER_IG}${ID_NEAT}`, {
