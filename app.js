@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-const {ID_NEAT,TRIGGER_IG,NEAT} = process.env
+const {ID_NEAT,TRIGGER_IG,NEAT,SEND_WA,WA} = process.env
 
 const app = express();
 
@@ -91,7 +91,18 @@ app.get("/whatsapp", (req, res) => {
 });
 
 app.post('/whatsapp',async (req,res)=>{
-  console.log('Received webhook:', JSON.stringify(req.body, null, 2));
+  let entry = req.body.entry?.[0];
+  const changes = entry?.changes?.[0];
+  const phone = changes?.value?.messages?.[0]?.from;
+  const text = changes?.value?.messages?.[0]?.text?.body;
+
+  if(phone && text){
+    if(text==="jam"){
+      await sendWa(phone, getCurrentDateTimeWIB());
+    }else{
+      await sendWa(phone, text)
+    }
+  }
   res.sendStatus(200);
 })
 
@@ -184,6 +195,49 @@ async function sendTemplate(senderId){
       }
     })
   });
+}
+
+async function sendWa(phone, text) {
+  try {
+    const response = await fetch(`${SEND_WA}`, {
+      method: "POST",
+      headers: {
+        'Authorization': `Bearer ${WA}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        to: phone,
+        type: "text",
+        text: { body: text }
+      })
+    });
+
+  } catch (error) {
+    console.error('Error sendWa:', error);
+    return error;
+  }
+}
+
+function getCurrentDateTimeWIB() {
+  const now = new Date();
+
+  const tanggal = new Intl.DateTimeFormat('id-ID', {
+    timeZone: 'Asia/Jakarta',
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric'
+  }).format(now);
+
+  const waktu = new Intl.DateTimeFormat('id-ID', {
+    timeZone: 'Asia/Jakarta',
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(now);
+
+  return `Sekarang ${tanggal}, jam ${waktu} WIB`;
 }
 
 const PORT = 3000;
