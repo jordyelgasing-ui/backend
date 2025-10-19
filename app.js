@@ -255,7 +255,7 @@ async function searchGoogle(query) {
     if (!data.items) return "❌ Tidak ada hasil ditemukan.";
 
     return data.items
-      .slice(0, 3) // ambil 3 hasil pertama
+      .slice(0, 10) // ambil 3 hasil pertama
       .map((item, i) => {
         return `${i + 1}. ${item.title}\n${item.link}`;
       })
