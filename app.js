@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-const {ID_NEAT,TRIGGER_IG,NEAT,SEND_WA,WA} = process.env
+const {ID_NEAT,TRIGGER_IG,NEAT,SEND_WA,WA,GOOGLE,CX} = process.env
 
 const app = express();
 
@@ -100,7 +100,8 @@ app.post('/whatsapp',async (req,res)=>{
     if(text==="jam"){
       await sendWa(phone, getCurrentDateTimeWIB());
     }else{
-      await sendWa(phone, text)
+      const result = await searchGoogle(text)
+      await sendWa(phone, result)
     }
   }
   res.sendStatus(200);
@@ -238,6 +239,27 @@ function getCurrentDateTimeWIB() {
   }).format(now);
 
   return `Sekarang ${tanggal}, jam ${waktu} WIB`;
+}
+
+async function searchGoogle(query) {
+  const url = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&key=${GOOGLE}&cx=${CX}`;
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.items) return "❌ Tidak ada hasil ditemukan.";
+
+    const message = data.items
+      .slice(0, 3)
+      .map((item, i) => `${i + 1}. ${item.title}\n${item.link}`)
+      .join("\n\n");
+
+    return `🔍 Hasil pencarian untuk *"${query}"*:\n\n${message}`;
+  } catch (err) {
+    console.error("Error:", err);
+    return "⚠️ Terjadi kesalahan saat mencari data.";
+  }
 }
 
 const PORT = 3000;
