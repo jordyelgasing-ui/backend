@@ -95,6 +95,7 @@ app.post('/whatsapp',async (req,res)=>{
   const changes = entry?.changes?.[0];
   const phone = changes?.value?.messages?.[0]?.from;
   const text = changes?.value?.messages?.[0]?.text?.body;
+  console.log(text)
 
   if(phone && text){
     if(text==="jam"){
