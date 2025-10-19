@@ -241,8 +241,11 @@ function getCurrentDateTimeWIB() {
   return `Sekarang ${tanggal}, jam ${waktu} WIB`;
 }
 
+const apiKey = "AIzaSyCqPGMGpR7ST8rPuDxdUEY9quYkJ_aW_TE";
+const cx = "a1776bf40658145d1";
+
 async function searchGoogle(query) {
-  const url = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&key=${GOOGLE}&cx=${CX}`;
+  const url = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&key=${apiKey}&cx=${cx}`;
 
   try {
     const res = await fetch(url);
@@ -250,14 +253,13 @@ async function searchGoogle(query) {
 
     if (!data.items) return "❌ Tidak ada hasil ditemukan.";
 
-    const message = data.items
-      .slice(0, 3)
-      .map((item, i) => `${i + 1}. ${item.title}\n${item.link}`)
+    return data.items
+      .slice(0, 10) // ambil 3 hasil pertama
+      .map((item, i) => {
+        return `${i + 1}. ${item.title}\n${item.link}`;
+      })
       .join("\n\n");
-
-    return `🔍 Hasil pencarian untuk *"${query}"*:\n\n${message}`;
   } catch (err) {
-    console.error("Error:", err);
     return "⚠️ Terjadi kesalahan saat mencari data.";
   }
 }
