@@ -246,11 +246,8 @@ function getCurrentDateTimeWIB() {
   return `Sekarang ${tanggal}, jam ${waktu} WIB`;
 }
 
-const apiKey = "AIzaSyCqPGMGpR7ST8rPuDxdUEY9quYkJ_aW_TE";
-const cx = "a1776bf40658145d1";
-
 async function searchGoogle(query) {
-  const url = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&key=${apiKey}&cx=${cx}`;
+  const url = `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&key=${GOOGLE}&cx=${CX}`;
 
   try {
     const res = await fetch(url);
