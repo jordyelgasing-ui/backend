@@ -1,8 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const axios = require('axios')
 require('dotenv').config();
 
-const {ID_NEAT,TRIGGER_IG,NEAT,SEND_WA,WA,GOOGLE,CX} = process.env
+const {ID_NEAT,TRIGGER_IG,NEAT,SEND_WA,WA,GOOGLE,CX,AI} = process.env
 
 const app = express();
 
@@ -95,7 +96,9 @@ app.post('/whatsapp',async (req,res)=>{
   const changes = entry?.changes?.[0];
   const phone = changes?.value?.messages?.[0]?.from;
   const text = changes?.value?.messages?.[0]?.text?.body;
-  console.log(text)
+  const name = changes?.value?.contacts?.[0]?.profile.name;
+  //console.log(text)
+  //console.log('Received webhook:', JSON.stringify(req.body, null, 2));
 
   if(phone && text){
     if(text==="jam"){
@@ -103,6 +106,7 @@ app.post('/whatsapp',async (req,res)=>{
     }else{
       const result = await searchGoogle(text)
       await sendWa(phone, result)
+      //await sendToAi(phone,text)
     }
   }
   res.sendStatus(200);
@@ -262,6 +266,46 @@ async function searchGoogle(query) {
       .join("\n\n");
   } catch (err) {
     return "⚠️ Terjadi kesalahan saat mencari data.";
+  }
+}
+
+async function sendToAi(phone,text){
+  try{
+    const res = await axios.post(`${AI}`,
+    {
+      model: "meta-llama/llama-4-maverick:free",
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "text",
+              text: text
+            }
+          ]
+        },
+        {
+          role: "system",
+          content: [
+            {
+              type: "text",
+              text: "Kamu adalah asisten singkat. Jawab dengan tepat 10–20 kata. Jika jawaban lebih panjang, potonglah tanpa penjelasan tambahan."
+            }
+          ]
+        }
+      ]
+    },
+  {
+      headers:
+      {
+          'Authorization': `Bearer ${process.env.MI}`,
+          'Content-Type': 'application/json',
+      }
+  })
+  await sendWa(phone, `${res.data.choices[0].message.content}`)
+
+  }catch(error){
+    await sendWa(phone, "Ada error")
   }
 }
 
