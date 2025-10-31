@@ -1,12 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const axios = require('axios')
+const axios = require('axios');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 require('dotenv').config();
 
-const {ID_NEAT,TRIGGER_IG,NEAT,SEND_WA,WA,GOOGLE,CX,AI} = process.env
+const {ID_NEAT,TRIGGER_IG,NEAT,SEND_WA,WA,GOOGLE,CX,AI,GEMMA} = process.env
 
 const app = express();
-
+const genAI = new GoogleGenerativeAI(GEMMA);
 mongoose.connect(process.env.MONGODB);
 
 // Schema bebas (strict: false)
@@ -104,9 +105,10 @@ app.post('/whatsapp',async (req,res)=>{
     if(text==="jam"){
       await sendWa(phone, getCurrentDateTimeWIB());
     }else{
-      const result = await searchGoogle(text)
-      await sendWa(phone, result)
+      // const result = await searchGoogle(text)
+      // await sendWa(phone, result)
       //await sendToAi(phone,text)
+      await gemma(phone,text)
     }
   }
   res.sendStatus(200);
@@ -302,6 +304,18 @@ async function sendToAi(phone,text){
   await sendWa(phone, `${res.data.choices[0].message.content}`)
 
   }catch(error){
+    await sendWa(phone, "Ada error")
+  }
+}
+
+async function gemma(phone,text) {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemma-3-27b-it" });
+
+    const result = await model.generateContent(`Jelaskan dalam 10 kata User: ${text}`);
+    console.log(result.response.text());
+    await sendWa(phone,result.response.text())
+  } catch (err) {
     await sendWa(phone, "Ada error")
   }
 }
