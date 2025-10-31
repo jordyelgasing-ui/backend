@@ -112,6 +112,7 @@ app.post('/whatsapp',async (req,res)=>{
       const result = await searchGoogle(text)
       await sendWa(phone, result)
     }else{
+      userState[phone] = { step: "null" };
       await gemma(phone,text)
     }
   }
