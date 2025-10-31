@@ -268,52 +268,11 @@ async function searchGoogle(query) {
   }
 }
 
-async function sendToAi(phone,text){
-  try{
-    const res = await axios.post(`${AI}`,
-    {
-      model: "meta-llama/llama-4-maverick:free",
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: text
-            }
-          ]
-        },
-        {
-          role: "system",
-          content: [
-            {
-              type: "text",
-              text: "Kamu adalah asisten singkat. Jawab dengan tepat 10–20 kata. Jika jawaban lebih panjang, potonglah tanpa penjelasan tambahan."
-            }
-          ]
-        }
-      ]
-    },
-  {
-      headers:
-      {
-          'Authorization': `Bearer ${process.env.MI}`,
-          'Content-Type': 'application/json',
-      }
-  })
-  await sendWa(phone, `${res.data.choices[0].message.content}`)
-
-  }catch(error){
-    await sendWa(phone, "Ada error")
-  }
-}
-
 async function gemma(phone,text) {
   try {
     const model = genAI.getGenerativeModel({ model: "gemma-3-27b-it" });
 
     const result = await model.generateContent(`Jawab percakapan user dalam 10 kata User: ${text}`);
-    console.log(result.response.text());
     await sendWa(phone,result.response.text())
   } catch (err) {
     await sendWa(phone, "Ada error")
