@@ -312,7 +312,7 @@ async function gemma(phone,text) {
   try {
     const model = genAI.getGenerativeModel({ model: "gemma-3-27b-it" });
 
-    const result = await model.generateContent(`Jelaskan dalam 10 kata User: ${text}`);
+    const result = await model.generateContent(`Jawab percakapan user dalam 10 kata User: ${text}`);
     console.log(result.response.text());
     await sendWa(phone,result.response.text())
   } catch (err) {
