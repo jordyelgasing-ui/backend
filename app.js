@@ -15,6 +15,7 @@ const faceSchema = new mongoose.Schema({}, { strict: false });
 const Face = mongoose.model('Face', faceSchema, 'faces');
 const urlSchema = new mongoose.Schema({},{ strict: false });
 const Url = mongoose.model('Url',urlSchema,'url');
+const userState = {}
 
 app.use(express.json());
 
@@ -105,6 +106,9 @@ app.post('/whatsapp',async (req,res)=>{
     if(text==="jam"){
       await sendWa(phone, getCurrentDateTimeWIB());
     }else if(text==="search"){
+      userState[phone] = { step: "search" };
+      await sendWa(phone,"search: Active")
+    }else if(userState[senderId]?.step ===  "search"){
       const result = await searchGoogle(text)
       await sendWa(phone, result)
     }else{
