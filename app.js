@@ -108,7 +108,7 @@ app.post('/whatsapp',async (req,res)=>{
     }else if(text==="search"){
       userState[phone] = { step: "search" };
       await sendWa(phone,"search: Active")
-    }else if(userState[senderId]?.step ===  "search"){
+    }else if(userState[phone]?.step ===  "search"){
       const result = await searchGoogle(text)
       await sendWa(phone, result)
     }else{
