@@ -104,10 +104,10 @@ app.post('/whatsapp',async (req,res)=>{
   if(phone && text){
     if(text==="jam"){
       await sendWa(phone, getCurrentDateTimeWIB());
+    }else if(text==="search"){
+      const result = await searchGoogle(text)
+      await sendWa(phone, result)
     }else{
-      // const result = await searchGoogle(text)
-      // await sendWa(phone, result)
-      //await sendToAi(phone,text)
       await gemma(phone,text)
     }
   }
