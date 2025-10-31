@@ -111,8 +111,8 @@ app.post('/whatsapp',async (req,res)=>{
     }else if(userState[phone]?.step ===  "search"){
       const result = await searchGoogle(text)
       await sendWa(phone, result)
-    }else{
       userState[phone] = { step: "null" };
+    }else{
       await gemma(phone,text)
     }
   }
