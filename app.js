@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const axios = require('axios');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenAI } = require("@google/genai");
 require('dotenv').config();
 
 const {ID_NEAT,TRIGGER_IG,NEAT,SEND_WA,WA,GOOGLE,CX,AI,GEMMA} = process.env
@@ -15,6 +15,9 @@ const faceSchema = new mongoose.Schema({}, { strict: false });
 const Face = mongoose.model('Face', faceSchema, 'faces');
 const urlSchema = new mongoose.Schema({},{ strict: false });
 const Url = mongoose.model('Url',urlSchema,'url');
+const ai = new GoogleGenAI({
+  apiKey: GEMMA, // atau ganti string langsung
+});
 const userState = {}
 
 app.use(express.json());
@@ -99,10 +102,13 @@ app.post('/whatsapp',async (req,res)=>{
   const phone = changes?.value?.messages?.[0]?.from;
   const text = changes?.value?.messages?.[0]?.text?.body;
   const name = changes?.value?.contacts?.[0]?.profile.name;
+  const long = changes?.value?.messages?.[0]?.location?.longitude;
+  const lat = changes?.value?.messages?.[0]?.location?.latitude;
   //console.log(text)
   //console.log('Received webhook:', JSON.stringify(req.body, null, 2));
+  console.log(`${long} ${lat}`)
 
-  if(phone && text){
+  if((phone && text) || (long && lat)){
     if(text==="jam"){
       await sendWa(phone, getCurrentDateTimeWIB());
     }else if(text==="search"){
@@ -111,6 +117,15 @@ app.post('/whatsapp',async (req,res)=>{
     }else if(userState[phone]?.step ===  "search"){
       const result = await searchGoogle(text)
       await sendWa(phone, result)
+      userState[phone] = { step: "null" };
+    }else if(text==="gps"){
+      userState[phone] = { step: "gps" };
+      await requestLocation(phone)
+    }else if(userState[phone]?.step ===  "gps"){
+      userState[phone] = { step: "input" };
+      await sendWa(phone,"Variable for location received please input prompt")
+    }else if(userState[phone]?.step ===  "input"){
+      await getLocation(phone,text,lat,long)
       userState[phone] = { step: "null" };
     }else{
       await gemma(phone,text)
@@ -282,6 +297,55 @@ async function gemma(phone,text) {
   } catch (err) {
     await sendWa(phone, "Ada error")
   }
+}
+
+async function requestLocation(phone){
+  try{
+    const responses = await fetch(`${SEND_WA}`, {
+      method: "POST", 
+      headers: {
+        'Authorization': `Bearer ${WA}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        type: "interactive",
+        to: phone,
+        interactive: {
+          type: "location_request_message",
+          body: {
+            text: "Press the button to send location"
+          },
+          action: {
+            name: "send_location"
+          }
+        }
+      })
+    });
+  }catch(error){
+    await sendWa(phone, "Ada error (request location)")
+  }
+}
+
+async function getLocation(phone,text,lat,long) {
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: `System: berikan user 3 tempat yang paling dekat. User:${text}`,
+    config: {
+      tools: [{ googleMaps: {} }],
+      toolConfig: {
+        retrievalConfig: {
+          latLng: {
+            latitude: lat,
+            longitude: long,
+          },
+        },
+      },
+    },
+  });
+
+  await sendWa(phone,response.text)
 }
 
 const PORT = 3000;
