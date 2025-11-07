@@ -19,6 +19,8 @@ const ai = new GoogleGenAI({
   apiKey: GEMMA, // atau ganti string langsung
 });
 const userState = {}
+let longitude;
+let latitude
 
 app.use(express.json());
 
@@ -106,7 +108,7 @@ app.post('/whatsapp',async (req,res)=>{
   const lat = changes?.value?.messages?.[0]?.location?.latitude;
   //console.log(text)
   //console.log('Received webhook:', JSON.stringify(req.body, null, 2));
-  console.log(`${long} ${lat}`)
+  //console.log(`${long} ${lat}`)
 
   if((phone && text) || (long && lat)){
     if(text==="jam"){
@@ -121,11 +123,13 @@ app.post('/whatsapp',async (req,res)=>{
     }else if(text==="gps"){
       userState[phone] = { step: "gps" };
       await requestLocation(phone)
-    }else if(userState[phone]?.step ===  "gps"){
+    }else if(userState[phone]?.step ===  "gps" || (lat && long)){
       userState[phone] = { step: "input" };
+      longitude=long;
+      latitude=lat;
       await sendWa(phone,"Variable for location received please input prompt")
     }else if(userState[phone]?.step ===  "input"){
-      await getLocation(phone,text,lat,long)
+      await getLocation(phone,text,latitude,longitude)
       userState[phone] = { step: "null" };
     }else{
       await gemma(phone,text)
@@ -331,7 +335,7 @@ async function requestLocation(phone){
 async function getLocation(phone,text,lat,long) {
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
-    contents: `System: berikan user 3 tempat yang paling dekat. User:${text}`,
+    contents: `System:Berikan user 3 tempat yang paling dekat. User: ${text}`,
     config: {
       tools: [{ googleMaps: {} }],
       toolConfig: {
