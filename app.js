@@ -335,7 +335,7 @@ async function requestLocation(phone){
 async function getLocation(phone,text,lat,long) {
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
-    contents: `System:Berikan user 3 tempat yang paling dekat. User: ${text}`,
+    contents: `System:Berikan user tempat yang paling dekat dan berjarak kurang dari 3 km. User: ${text}`,
     config: {
       tools: [{ googleMaps: {} }],
       toolConfig: {
