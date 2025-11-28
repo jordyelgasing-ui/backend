@@ -21,6 +21,7 @@ const ai = new GoogleGenAI({
 const userState = {}
 let longitude;
 let latitude
+let username;
 
 app.use(express.json());
 
@@ -67,21 +68,23 @@ app.post('/chatbot', async (req, res) => {
       const attachment = messaging.message.attachments?.[0];
       const type = attachment?.type;
       const url = attachment?.payload?.url;
-      console.log(textMsg)
-      if(type === "image" && url){
+      console.log(type)
+      if(type === "video" && url){
+        console.log(url)
+        const ready = await cloud(url);
+        await sendMessage(senderId,ready)
+      }else if(type === "image" && url){
         await sendMessage(senderId,"image")
         await postData(senderId,url);
       }else if(textMsg.toLowerCase() === 'halo'){
         await getInfo(senderId)
       }else if(textMsg){
         await sendTemplate(senderId)
-      }else if(type === "share" && url){
-        await sendMessage(senderId,"posting ig")
       }
     }
     res.sendStatus(200)
   }catch(error){
-    res.sendStatus(500)
+    return null;
   }
 });
 
@@ -166,7 +169,7 @@ async function getInfo(id){
   });
   const data = await res.json();
   const user = data.username;
-  await sendMessage(id,`Halo ${user}`);
+  return user
 }
 
 async function postData(id,url) {
@@ -352,6 +355,25 @@ async function getLocation(phone,text,lat,long) {
   await sendWa(phone,response.text)
 }
 
+async function cloud(url) {
+  try {
+    const responses = await fetch(`https://my-worker.grockmajalengka.workers.dev/video`, {
+      method: "POST", 
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        url:url
+      })
+    });
+    const data = await responses.json();
+    const cloudinaryUrl = data.cloudinary_url;
+    return cloudinaryUrl;
+        
+  } catch (error) {
+    return error;
+  }
+}
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server jalan di http://localhost:${PORT}`);
